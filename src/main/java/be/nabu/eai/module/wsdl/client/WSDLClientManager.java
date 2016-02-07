@@ -14,7 +14,6 @@ import be.nabu.eai.repository.api.ArtifactRepositoryManager;
 import be.nabu.eai.repository.api.Entry;
 import be.nabu.eai.repository.api.ModifiableEntry;
 import be.nabu.eai.repository.api.ResourceEntry;
-import be.nabu.eai.repository.managers.base.WSDLClient;
 import be.nabu.eai.repository.resources.MemoryEntry;
 import be.nabu.libs.resources.ResourceReadableContainer;
 import be.nabu.libs.resources.api.ReadableResource;
