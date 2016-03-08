@@ -56,4 +56,5 @@ public class WSDLClient extends JAXBArtifact<WSDLClientConfiguration> {
 		}
 		return definition;
 	}
+
 }

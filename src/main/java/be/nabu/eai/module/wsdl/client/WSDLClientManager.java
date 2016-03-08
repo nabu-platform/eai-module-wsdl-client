@@ -43,8 +43,19 @@ public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfigurati
 
 		try {
 			if (artifact.getDefinition() != null && artifact.getDefinition().getBindings() != null && !artifact.getDefinition().getBindings().isEmpty()) {
+				// add all services as interfaces
+				MemoryEntry interfaces = new MemoryEntry(root.getRepository(), root, null, root.getId() + ".interfaces", "interfaces");
 				MemoryEntry services = new MemoryEntry(root.getRepository(), root, null, root.getId() + ".services", "services");
 				for (BindingOperation operation : artifact.getDefinition().getBindings().get(0).getOperations()) {
+					final String ifaceId = interfaces.getId() + "." + operation.getName();
+					EAINode node = new EAINode();
+					node.setArtifact(new WSDLInterface(ifaceId, operation));
+					node.setLeaf(true);
+					MemoryEntry entry = new MemoryEntry(services.getRepository(), interfaces, node, ifaceId, operation.getName());
+					node.setEntry(entry);
+					interfaces.addChildren(entry);
+					entries.add(entry);
+					
 					WSDLService service = new WSDLService(services.getId() + "." + operation.getName(), operation, new HTTPClientProvider() {
 						@Override
 						public HTTPClient newHTTPClient(String transactionId) {
@@ -56,15 +67,15 @@ public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfigurati
 							}
 						}
 					}, artifact.getConfiguration().getCharset());
-					EAINode node = new EAINode();
+					node = new EAINode();
 					node.setArtifact(service);
 					node.setLeaf(true);
-					MemoryEntry entry = new MemoryEntry(services.getRepository(), services, node, services.getId() + "." + operation.getName(), operation.getName());
+					entry = new MemoryEntry(services.getRepository(), services, node, services.getId() + "." + operation.getName(), operation.getName());
 					node.setEntry(entry);
 					services.addChildren(entry);
 					entries.add(entry);
 				}
-				// TODO: add documents! only xml types that can be traced back to this id, otherwise they are imported from elsewhere
+				root.addChildren(interfaces);
 				root.addChildren(services);
 				
 				for (String namespace : artifact.getDefinition().getRegistry().getNamespaces()) {
@@ -89,7 +100,6 @@ public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfigurati
 
 	private void addType(ModifiableEntry root, WSDLClient artifact, List<Entry> entries, DefinedType type) {
 		String id = ((DefinedType) type).getId();
-		System.out.println("ADDING TYPE: " + id + " ? " + artifact.getId());
 		if (id.startsWith(artifact.getId() + ".")) {
 			String parentId = id.replaceAll("\\.[^.]+$", "");
 			ModifiableEntry parent = EAIRepositoryUtils.getParent(root, id.substring(artifact.getId().length() + 1), false);
