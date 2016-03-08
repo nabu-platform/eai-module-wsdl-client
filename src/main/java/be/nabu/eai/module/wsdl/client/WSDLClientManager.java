@@ -1,59 +1,34 @@
 package be.nabu.eai.module.wsdl.client;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.xml.sax.SAXException;
-
-import be.nabu.eai.module.types.xml.EntryResourceResolver;
+import nabu.protocols.http.client.Services;
 import be.nabu.eai.repository.EAINode;
+import be.nabu.eai.repository.EAIRepositoryUtils;
 import be.nabu.eai.repository.api.ArtifactRepositoryManager;
 import be.nabu.eai.repository.api.Entry;
 import be.nabu.eai.repository.api.ModifiableEntry;
-import be.nabu.eai.repository.api.ResourceEntry;
+import be.nabu.eai.repository.api.Repository;
+import be.nabu.eai.repository.managers.base.JAXBArtifactManager;
 import be.nabu.eai.repository.resources.MemoryEntry;
-import be.nabu.libs.resources.ResourceReadableContainer;
-import be.nabu.libs.resources.api.ReadableResource;
-import be.nabu.libs.resources.api.Resource;
-import be.nabu.libs.services.wsdl.WSDLOperation;
+import be.nabu.libs.http.api.client.HTTPClient;
+import be.nabu.libs.resources.api.ResourceContainer;
+import be.nabu.libs.services.ServiceRuntime;
+import be.nabu.libs.services.wsdl.HTTPClientProvider;
 import be.nabu.libs.services.wsdl.WSDLService;
-import be.nabu.libs.services.wsdl.WSDLWrapper;
+import be.nabu.libs.types.api.ComplexType;
+import be.nabu.libs.types.api.DefinedType;
+import be.nabu.libs.types.api.SimpleType;
+import be.nabu.libs.types.xml.XMLSchemaType;
 import be.nabu.libs.validator.api.Validation;
-import be.nabu.utils.io.IOUtils;
-import be.nabu.utils.io.api.ByteBuffer;
-import be.nabu.utils.io.api.ReadableContainer;
+import be.nabu.libs.wsdl.api.BindingOperation;
 
-public class WSDLClientManager implements ArtifactRepositoryManager<WSDLClient> {
+public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfiguration, WSDLClient> implements ArtifactRepositoryManager<WSDLClient> {
 
-	@Override
-	public WSDLClient load(ResourceEntry entry, List<Validation<?>> messages) throws IOException, ParseException {
-		Resource resource = entry.getContainer().getChild("interface.wsdl");
-		if (resource == null) {
-			throw new FileNotFoundException("Can not find interface.wsdl");
-		}
-		ReadableContainer<ByteBuffer> readable = new ResourceReadableContainer((ReadableResource) resource);
-		try {
-			WSDLWrapper wrapper = new WSDLWrapper(IOUtils.toInputStream(readable), false);
-			wrapper.setResolver(new EntryResourceResolver(entry));
-			wrapper.parse();
-			WSDLClient client = new WSDLClient(entry.getId());
-			client.setWrapper(wrapper);
-			return client;
-		}
-		catch (SAXException e) {
-			throw new ParseException(e.getMessage(), 0);
-		}
-		finally {
-			readable.close();
-		}
-	}
-
-	@Override
-	public List<Validation<?>> save(ResourceEntry entry, WSDLClient artifact) throws IOException {
-		throw new IOException("Can not update a client wsdl this way");
+	public WSDLClientManager() {
+		super(WSDLClient.class);
 	}
 
 	@Override
@@ -62,24 +37,70 @@ public class WSDLClientManager implements ArtifactRepositoryManager<WSDLClient> 
 	}
 
 	@Override
-	public List<Entry> addChildren(ModifiableEntry parent, WSDLClient artifact) throws IOException {
+	public List<Entry> addChildren(ModifiableEntry root, WSDLClient artifact) throws IOException {
 		List<Entry> entries = new ArrayList<Entry>();
-		((EAINode) parent.getNode()).setLeaf(false);
-		
-		MemoryEntry services = new MemoryEntry(parent.getRepository(), parent, null, parent.getId() + ".services", "services");
-		for (WSDLOperation operation : artifact.getWrapper().getOperations()) {
-			WSDLService service = new WSDLService(services.getId() + "." + operation.getName(), operation);
+		((EAINode) root.getNode()).setLeaf(false);
+
+		try {
+			if (artifact.getDefinition() != null && artifact.getDefinition().getBindings() != null && !artifact.getDefinition().getBindings().isEmpty()) {
+				MemoryEntry services = new MemoryEntry(root.getRepository(), root, null, root.getId() + ".services", "services");
+				for (BindingOperation operation : artifact.getDefinition().getBindings().get(0).getOperations()) {
+					WSDLService service = new WSDLService(services.getId() + "." + operation.getName(), operation, new HTTPClientProvider() {
+						@Override
+						public HTTPClient newHTTPClient(String transactionId) {
+							try {
+								return Services.getTransactionable(ServiceRuntime.getRuntime().getExecutionContext(), transactionId, artifact.getConfiguration().getHttpClient()).getClient();
+							}
+							catch (Exception e) {
+								throw new RuntimeException(e);
+							}
+						}
+					}, artifact.getConfiguration().getCharset());
+					EAINode node = new EAINode();
+					node.setArtifact(service);
+					node.setLeaf(true);
+					MemoryEntry entry = new MemoryEntry(services.getRepository(), services, node, services.getId() + "." + operation.getName(), operation.getName());
+					node.setEntry(entry);
+					services.addChildren(entry);
+					entries.add(entry);
+				}
+				// TODO: add documents! only xml types that can be traced back to this id, otherwise they are imported from elsewhere
+				root.addChildren(services);
+				
+				for (String namespace : artifact.getDefinition().getRegistry().getNamespaces()) {
+					for (ComplexType type : artifact.getDefinition().getRegistry().getComplexTypes(namespace)) {
+						if (type instanceof XMLSchemaType && type instanceof DefinedType) {
+							addType(root, artifact, entries, (DefinedType) type);
+						}
+					}
+					for (SimpleType<?> type : artifact.getDefinition().getRegistry().getSimpleTypes(namespace)) {
+						if (type instanceof XMLSchemaType && type instanceof DefinedType) {
+							addType(root, artifact, entries, (DefinedType) type);
+						}
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return entries;
+	}
+
+	private void addType(ModifiableEntry root, WSDLClient artifact, List<Entry> entries, DefinedType type) {
+		String id = ((DefinedType) type).getId();
+		System.out.println("ADDING TYPE: " + id + " ? " + artifact.getId());
+		if (id.startsWith(artifact.getId() + ".")) {
+			String parentId = id.replaceAll("\\.[^.]+$", "");
+			ModifiableEntry parent = EAIRepositoryUtils.getParent(root, id.substring(artifact.getId().length() + 1), false);
 			EAINode node = new EAINode();
-			node.setArtifact(service);
+			node.setArtifact(type);
 			node.setLeaf(true);
-			MemoryEntry entry = new MemoryEntry(services.getRepository(), services, node, services.getId() + "." + operation.getName(), operation.getName());
+			MemoryEntry entry = new MemoryEntry(root.getRepository(), parent, node, id, id.substring(parentId.length() + 1));
 			node.setEntry(entry);
-			services.addChildren(entry);
+			parent.addChildren(entry);
 			entries.add(entry);
 		}
-		// TODO: add documents!
-		parent.addChildren(services);
-		return entries;
 	}
 
 	@Override
@@ -92,7 +113,13 @@ public class WSDLClientManager implements ArtifactRepositoryManager<WSDLClient> 
 			}
 			parent.removeChildren("services");
 		}
-		// TODO: add documents!
+		Entry types = parent.getChild("types");
+		if (types != null) {
+			for (Entry type : types) {
+				entries.add(type);
+			}
+			parent.removeChildren("types");
+		}
 		return entries;
 	}
 
@@ -104,5 +131,10 @@ public class WSDLClientManager implements ArtifactRepositoryManager<WSDLClient> 
 	@Override
 	public List<Validation<?>> updateReference(WSDLClient artifact, String from, String to) throws IOException {
 		return null;
+	}
+
+	@Override
+	protected WSDLClient newInstance(String id, ResourceContainer<?> container, Repository repository) {
+		return new WSDLClient(id, container, repository);
 	}
 }
