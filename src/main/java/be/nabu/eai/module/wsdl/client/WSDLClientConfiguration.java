@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import be.nabu.eai.api.EnvironmentSpecific;
 import be.nabu.eai.module.http.client.HTTPClientArtifact;
 import be.nabu.eai.repository.jaxb.ArtifactXMLAdapter;
+import be.nabu.eai.repository.jaxb.CharsetAdapter;
 import be.nabu.libs.types.api.DefinedTypeRegistry;
 
 @XmlRootElement(name = "wsdlClient")
@@ -45,6 +46,7 @@ public class WSDLClientConfiguration {
 		this.registries = registries;
 	}
 	
+	@XmlJavaTypeAdapter(value = CharsetAdapter.class)
 	public Charset getCharset() {
 		return charset;
 	}
