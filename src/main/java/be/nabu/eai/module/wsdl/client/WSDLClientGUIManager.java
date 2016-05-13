@@ -13,7 +13,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -72,9 +71,9 @@ public class WSDLClientGUIManager extends BaseJAXBGUIManager<WSDLClientConfigura
 			@Override
 			public void handle(ActionEvent arg0) {
 				final SimplePropertyUpdater zippedUpdater = new SimplePropertyUpdater(true, new LinkedHashSet(Arrays.asList(new Property [] { new SimpleProperty<Boolean>("Zip?", Boolean.class, true) })));
-				EAIDeveloperUtils.buildPopup(MainController.getInstance(), zippedUpdater, "Is standalone WSDL or zipped?", new EventHandler<MouseEvent>() {
+				EAIDeveloperUtils.buildPopup(MainController.getInstance(), zippedUpdater, "Is standalone WSDL or zipped?", new EventHandler<ActionEvent>() {
 					@Override
-					public void handle(MouseEvent arg0) {
+					public void handle(ActionEvent arg0) {
 						final Boolean zipped = zippedUpdater.getValue("Zip?") == null ? false : zippedUpdater.getValue("Zip?");
 						Set properties = new LinkedHashSet();
 						properties.add(new SimpleProperty<byte[]>(zipped ? "Zip" : "WSDL", byte[].class, true));
@@ -82,9 +81,9 @@ public class WSDLClientGUIManager extends BaseJAXBGUIManager<WSDLClientConfigura
 							properties.add(new SimpleProperty<String>("Main WSDL Name", String.class, false));	
 						}
 						final SimplePropertyUpdater updater = new SimplePropertyUpdater(true, properties);
-						EAIDeveloperUtils.buildPopup(MainController.getInstance(), updater, "Upload WSDL", new EventHandler<MouseEvent>() {
+						EAIDeveloperUtils.buildPopup(MainController.getInstance(), updater, "Upload WSDL", new EventHandler<ActionEvent>() {
 							@Override
-							public void handle(MouseEvent arg0) {
+							public void handle(ActionEvent arg0) {
 								try {
 									// remove current
 									if (instance.getDirectory().getChild(EAIResourceRepository.PRIVATE) != null) {
