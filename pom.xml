@@ -62,6 +62,11 @@
 		</dependency>
 		
 		<dependency>
+			<groupId>be.nabu.utils</groupId>
+			<artifactId>utils-xml</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>be.nabu.libs.converter</groupId>
 			<artifactId>converter-api</artifactId>
 			<scope>provided</scope>
