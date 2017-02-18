@@ -2,6 +2,8 @@ package be.nabu.eai.module.wsdl.client;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -64,9 +66,8 @@ public class WSDLClientGUIManager extends BaseJAXBGUIManager<WSDLClientConfigura
 		VBox vbox = new VBox();
 		HBox buttons = new HBox();
 		vbox.getChildren().add(buttons);
-		Button button = new Button("Upload WSDL");
-		buttons.getChildren().add(button);
-		button.addEventHandler(ActionEvent.ANY, new EventHandler<ActionEvent>() {
+		Button upload = new Button("Update from file");
+		upload.addEventHandler(ActionEvent.ANY, new EventHandler<ActionEvent>() {
 			@SuppressWarnings({ "rawtypes", "unchecked" })
 			@Override
 			public void handle(ActionEvent arg0) {
@@ -157,6 +158,51 @@ public class WSDLClientGUIManager extends BaseJAXBGUIManager<WSDLClientConfigura
 				});
 			}
 		});
+		Button download = new Button("Update from URI");
+		download.addEventHandler(ActionEvent.ANY, new EventHandler<ActionEvent>() {
+			@SuppressWarnings({ "rawtypes", "unchecked" })
+			@Override
+			public void handle(ActionEvent arg0) {
+				SimpleProperty<URI> fileProperty = new SimpleProperty<URI>("URI", URI.class, true);
+				final SimplePropertyUpdater updater = new SimplePropertyUpdater(true, new LinkedHashSet(Arrays.asList(new Property [] { fileProperty })));
+				EAIDeveloperUtils.buildPopup(MainController.getInstance(), updater, "WSDL URI", new EventHandler<ActionEvent>() {
+					@Override
+					public void handle(ActionEvent arg0) {
+						try {
+							if (instance.getDirectory().getChild("main.wsdl") != null) {
+								((ManageableContainer<?>) instance.getDirectory()).delete("main.wsdl");
+							}
+							URI uri = updater.getValue("URI");
+							if (uri != null) {
+								Resource child = instance.getDirectory().getChild("main.wsdl");
+								if (child == null) {
+									child = ((ManageableContainer<?>) instance.getDirectory()).create("main.wsdl", "application/xml");
+								}
+								WritableContainer<ByteBuffer> writable = ((WritableResource) child).getWritable();
+								try {
+									InputStream stream = uri.toURL().openStream();
+									try {
+										IOUtils.copyBytes(IOUtils.wrap(stream), writable);
+									}
+									finally {
+										stream.close();
+									}
+								}
+								finally {
+									writable.close();
+								}
+							}
+							MainController.getInstance().setChanged();
+							MainController.getInstance().refresh(instance.getId());
+						}
+						catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+					}
+				});
+			}
+		});
+		buttons.getChildren().addAll(upload, download);
 		vbox.prefWidthProperty().bind(scroll.widthProperty());
 		scroll.setContent(vbox);
 		AnchorPane anchorPane = new AnchorPane();

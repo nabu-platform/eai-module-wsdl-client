@@ -21,6 +21,7 @@ public class WSDLClientConfiguration {
 	private Charset charset;
 	private String username, password;
 	private boolean stringsOnly;
+	private String endpoint;
 	
 	public List<String> getPrefinedPrefixes() {
 		return prefinedPrefixes;
@@ -75,6 +76,14 @@ public class WSDLClientConfiguration {
 	}
 	public void setStringsOnly(boolean stringsOnly) {
 		this.stringsOnly = stringsOnly;
+	}
+	
+	@EnvironmentSpecific
+	public String getEndpoint() {
+		return endpoint;
+	}
+	public void setEndpoint(String endpoint) {
+		this.endpoint = endpoint;
 	}
 
 }

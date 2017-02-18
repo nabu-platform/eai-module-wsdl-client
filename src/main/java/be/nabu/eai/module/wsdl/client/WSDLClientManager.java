@@ -67,6 +67,7 @@ public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfigurati
 							}
 						}
 					}, artifact.getConfiguration().getCharset());
+					service.setEndpoint(artifact.getConfig().getEndpoint());
 					node = new EAINode();
 					node.setArtifact(service);
 					node.setLeaf(true);
