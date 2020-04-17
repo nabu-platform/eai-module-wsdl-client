@@ -17,6 +17,7 @@ import be.nabu.libs.http.api.client.HTTPClient;
 import be.nabu.libs.resources.api.ResourceContainer;
 import be.nabu.libs.services.ServiceRuntime;
 import be.nabu.libs.services.wsdl.HTTPClientProvider;
+import be.nabu.libs.services.wsdl.WSDLInterface;
 import be.nabu.libs.services.wsdl.WSDLService;
 import be.nabu.libs.types.api.ComplexType;
 import be.nabu.libs.types.api.DefinedType;
@@ -25,6 +26,8 @@ import be.nabu.libs.types.xml.XMLSchemaType;
 import be.nabu.libs.validator.api.Validation;
 import be.nabu.libs.wsdl.api.BindingOperation;
 
+// currently root elements that have an anonymous complex type are not added, depending on how it is set up, this can mean that we are missing a lot of type information in the tree on the left
+// we could consider automatically adding all complex types that are of root elements as a named entry?
 public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfiguration, WSDLClient> implements ArtifactRepositoryManager<WSDLClient> {
 
 	public WSDLClientManager() {
@@ -76,7 +79,10 @@ public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfigurati
 					services.addChildren(entry);
 					entries.add(entry);
 				}
-				root.addChildren(interfaces);
+				// after a rather big update to the WSDL client to support more complex WSDLs, the WSDL Provider stubbing currently no longer works
+				// however, at this point we have runProfiles to simulate responses so it can be argued we no longer need WSDL stubbing
+				// for now we disable this feature rather than fixing it
+//				root.addChildren(interfaces);
 				root.addChildren(services);
 				
 				for (String namespace : artifact.getDefinition().getRegistry().getNamespaces()) {
