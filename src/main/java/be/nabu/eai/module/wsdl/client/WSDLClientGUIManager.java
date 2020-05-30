@@ -9,6 +9,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javafx.event.ActionEvent;
@@ -97,8 +98,10 @@ public class WSDLClientGUIManager extends BaseJAXBGUIManager<WSDLClientConfigura
 							byte [] content = updater.getValue("WSDL");
 							boolean zipped = false;
 							try {
-								new ZipInputStream(new ByteArrayInputStream(content)).getNextEntry();
-								zipped = true;
+								ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(content));
+								if (zipInputStream.getNextEntry() != null) {
+									zipped = true;
+								}
 							}
 							catch (Exception e) {
 								// it's not a zip file...

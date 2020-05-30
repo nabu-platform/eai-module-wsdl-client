@@ -2,6 +2,7 @@ package be.nabu.eai.module.wsdl.client;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import nabu.protocols.http.client.Services;
@@ -19,6 +20,7 @@ import be.nabu.libs.services.ServiceRuntime;
 import be.nabu.libs.services.wsdl.HTTPClientProvider;
 import be.nabu.libs.services.wsdl.WSDLInterface;
 import be.nabu.libs.services.wsdl.WSDLService;
+import be.nabu.libs.services.wsdl.ws.WSSecurity;
 import be.nabu.libs.types.api.ComplexType;
 import be.nabu.libs.types.api.DefinedType;
 import be.nabu.libs.types.api.SimpleType;
@@ -70,7 +72,13 @@ public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfigurati
 							}
 						}
 					}, artifact.getConfiguration().getCharset());
+					service.setPreemptiveAuthorizationType(artifact.getConfig().getPreemptiveAuthorizationType());
 					service.setEndpoint(artifact.getConfig().getEndpoint());
+					if (artifact.getConfig().getWsSecurity() != null) {
+						WSSecurity wsSecurity = new WSSecurity();
+						wsSecurity.setWsSecurityType(artifact.getConfig().getWsSecurity());
+						service.setExtensions(Arrays.asList(wsSecurity));
+					}
 					node = new EAINode();
 					node.setArtifact(service);
 					node.setLeaf(true);

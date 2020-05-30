@@ -10,24 +10,32 @@ import be.nabu.eai.api.EnvironmentSpecific;
 import be.nabu.eai.module.http.client.HTTPClientArtifact;
 import be.nabu.eai.repository.jaxb.ArtifactXMLAdapter;
 import be.nabu.eai.repository.jaxb.CharsetAdapter;
+import be.nabu.libs.http.api.WebAuthorizationType;
+import be.nabu.libs.services.wsdl.api.WSSecurityType;
 import be.nabu.libs.types.api.DefinedTypeRegistry;
 
 @XmlRootElement(name = "wsdlClient")
 public class WSDLClientConfiguration {
 	
-	private List<String> prefinedPrefixes;
+	private List<String> predefinedPrefixes;
 	private HTTPClientArtifact httpClient;
 	private List<DefinedTypeRegistry> registries;
 	private Charset charset;
 	private String username, password;
 	private boolean stringsOnly;
 	private String endpoint;
+	private WebAuthorizationType preemptiveAuthorizationType;
+	private WSSecurityType wsSecurity;
+	// not yet implemented...
+//	private List<Class<WSExtension>> extensions;
 	
-	public List<String> getPrefinedPrefixes() {
-		return prefinedPrefixes;
+	// unclear how this would be used?
+	@Deprecated
+	public List<String> getPredefinedPrefixes() {
+		return predefinedPrefixes;
 	}
-	public void setPrefinedPrefixes(List<String> prefinedPrefixes) {
-		this.prefinedPrefixes = prefinedPrefixes;
+	public void setPredefinedPrefixes(List<String> predefinedPrefixes) {
+		this.predefinedPrefixes = predefinedPrefixes;
 	}
 	
 	@EnvironmentSpecific
@@ -84,6 +92,20 @@ public class WSDLClientConfiguration {
 	}
 	public void setEndpoint(String endpoint) {
 		this.endpoint = endpoint;
+	}
+	
+	public WebAuthorizationType getPreemptiveAuthorizationType() {
+		return preemptiveAuthorizationType;
+	}
+	public void setPreemptiveAuthorizationType(WebAuthorizationType preemptiveAuthorizationType) {
+		this.preemptiveAuthorizationType = preemptiveAuthorizationType;
+	}
+	
+	public WSSecurityType getWsSecurity() {
+		return wsSecurity;
+	}
+	public void setWsSecurity(WSSecurityType wsSecurity) {
+		this.wsSecurity = wsSecurity;
 	}
 
 }
