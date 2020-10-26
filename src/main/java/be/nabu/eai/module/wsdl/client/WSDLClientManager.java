@@ -49,14 +49,14 @@ public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfigurati
 		try {
 			if (artifact.getDefinition() != null && artifact.getDefinition().getBindings() != null && !artifact.getDefinition().getBindings().isEmpty()) {
 				// add all services as interfaces
-				MemoryEntry interfaces = new MemoryEntry(root.getRepository(), root, null, root.getId() + ".interfaces", "interfaces");
-				MemoryEntry services = new MemoryEntry(root.getRepository(), root, null, root.getId() + ".services", "services");
+				MemoryEntry interfaces = new MemoryEntry(artifact.getId(), root.getRepository(), root, null, root.getId() + ".interfaces", "interfaces");
+				MemoryEntry services = new MemoryEntry(artifact.getId(), root.getRepository(), root, null, root.getId() + ".services", "services");
 				for (BindingOperation operation : artifact.getDefinition().getBindings().get(0).getOperations()) {
 					final String ifaceId = interfaces.getId() + "." + operation.getName();
 					EAINode node = new EAINode();
 					node.setArtifact(new WSDLInterface(ifaceId, operation));
 					node.setLeaf(true);
-					MemoryEntry entry = new MemoryEntry(services.getRepository(), interfaces, node, ifaceId, operation.getName());
+					MemoryEntry entry = new MemoryEntry(artifact.getId(), services.getRepository(), interfaces, node, ifaceId, operation.getName());
 					node.setEntry(entry);
 					interfaces.addChildren(entry);
 					entries.add(entry);
@@ -82,7 +82,7 @@ public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfigurati
 					node = new EAINode();
 					node.setArtifact(service);
 					node.setLeaf(true);
-					entry = new MemoryEntry(services.getRepository(), services, node, services.getId() + "." + operation.getName(), operation.getName());
+					entry = new MemoryEntry(artifact.getId(), services.getRepository(), services, node, services.getId() + "." + operation.getName(), operation.getName());
 					node.setEntry(entry);
 					services.addChildren(entry);
 					entries.add(entry);
@@ -121,7 +121,7 @@ public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfigurati
 			EAINode node = new EAINode();
 			node.setArtifact(type);
 			node.setLeaf(true);
-			MemoryEntry entry = new MemoryEntry(root.getRepository(), parent, node, id, id.substring(parentId.length() + 1));
+			MemoryEntry entry = new MemoryEntry(artifact.getId(), root.getRepository(), parent, node, id, id.substring(parentId.length() + 1));
 			node.setEntry(entry);
 			parent.addChildren(entry);
 			entries.add(entry);
