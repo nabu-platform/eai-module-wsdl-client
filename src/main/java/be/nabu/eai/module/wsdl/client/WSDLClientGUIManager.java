@@ -84,109 +84,14 @@ public class WSDLClientGUIManager extends BaseJAXBGUIManager<WSDLClientConfigura
 					@Override
 					public void handle(ActionEvent arg0) {
 						try {
-							// remove current
-							if (instance.getDirectory().getChild(EAIResourceRepository.PRIVATE) != null) {
-								((ManageableContainer<?>) instance.getDirectory()).delete(EAIResourceRepository.PRIVATE);
-							}
-							if (instance.getDirectory().getChild("main.wsdl") != null) {
-								((ManageableContainer<?>) instance.getDirectory()).delete("main.wsdl");
-							}
-							if (instance.getDirectory().getChild("main.properties") != null) {
-								((ManageableContainer<?>) instance.getDirectory()).delete("main.properties");
-							}
-							
 							byte [] content = updater.getValue("WSDL");
-							boolean zipped = false;
-							try {
-								ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(content));
-								if (zipInputStream.getNextEntry() != null) {
-									zipped = true;
-								}
-							}
-							catch (Exception e) {
-								// it's not a zip file...
-							}
 							
-							if (zipped) {
-								String mainWsdl = null;
-								Resource privateDirectory = instance.getDirectory().getChild(EAIResourceRepository.PRIVATE);
-								if (privateDirectory == null) {
-									privateDirectory = ((ManageableContainer<?>) instance.getDirectory()).create(EAIResourceRepository.PRIVATE, Resource.CONTENT_TYPE_DIRECTORY);
-								}
-								ResourceUtils.unzip(new ZipInputStream(new ByteArrayInputStream(content)), (ResourceContainer<?>) privateDirectory);
-								// if you didn't enter a main wsdl, we assume there is only one wsdl, take that
-								if (mainWsdl == null) {
-									for (Resource resource : (ResourceContainer<?>) privateDirectory) {
-										if (resource.getName().endsWith(".wsdl")) {
-											mainWsdl = resource.getName();
-										}
-									}
-								}
-								if (mainWsdl == null) {
-									Set properties = new LinkedHashSet();
-									EnumeratedSimpleProperty<String> e = new EnumeratedSimpleProperty<String>("Main WSDL Name", String.class, false);
-									for (Resource resource : (ResourceContainer<?>) privateDirectory) {
-										if (resource.getName().endsWith(".wsdl")) {
-											e.addAll(resource.getName());
-										}
-									}
-									properties.add(e);
-									final SimplePropertyUpdater updater = new SimplePropertyUpdater(true, properties);
-									EAIDeveloperUtils.buildPopup(MainController.getInstance(), updater, "Pick main WSDL", new EventHandler<ActionEvent>() {
-										@Override
-										public void handle(ActionEvent arg0) {
-											String mainWsdl = updater.getValue("Main WSDL Name");
-											if (mainWsdl != null) {
-												try {
-													writeWsdl(instance, mainWsdl);
-												}
-												catch (Exception e) {
-													MainController.getInstance().notify(e);
-												}
-											}
-										}
-									});
-								}
-								else {
-									writeWsdl(instance, mainWsdl);
-								}
-							}
-							else {
-								Resource child = instance.getDirectory().getChild("main.wsdl");
-								if (child == null) {
-									child = ((ManageableContainer<?>) instance.getDirectory()).create("main.wsdl", "text/xml");
-								}
-								WritableContainer<ByteBuffer> writable = ((WritableResource) child).getWritable();
-								try {
-									if (content.length != writable.write(IOUtils.wrap(content, true))) {
-										throw new RuntimeException("Could not write the entire wsdl");
-									}
-								}
-								finally {
-									writable.close();
-								}
-							}
+							uploadWsdl(instance, content);
 							MainController.getInstance().setChanged();
 							MainController.getInstance().refresh(instance.getId());
 						}
 						catch (Exception e) {
 							throw new RuntimeException(e);
-						}
-					}
-
-					private void writeWsdl(WSDLClient instance, String mainWsdl) throws IOException {
-						Resource child = instance.getDirectory().getChild("main.properties");
-						if (child == null) {
-							child = ((ManageableContainer<?>) instance.getDirectory()).create("main.properties", "text/plain");
-						}
-						Properties properties = new Properties();
-						properties.put("wsdl", mainWsdl);
-						WritableContainer<ByteBuffer> writable = ((WritableResource) child).getWritable();
-						try {
-							properties.store(IOUtils.toOutputStream(writable), "");
-						}
-						finally {
-							writable.close();
 						}
 					}
 				});
@@ -245,4 +150,103 @@ public class WSDLClientGUIManager extends BaseJAXBGUIManager<WSDLClientConfigura
 		pane.getChildren().add(scroll);
 	}
 	
+	public void uploadWsdl(WSDLClient instance, byte[] content) throws IOException {
+		// remove current
+		if (instance.getDirectory().getChild(EAIResourceRepository.PRIVATE) != null) {
+			((ManageableContainer<?>) instance.getDirectory()).delete(EAIResourceRepository.PRIVATE);
+		}
+		if (instance.getDirectory().getChild("main.wsdl") != null) {
+			((ManageableContainer<?>) instance.getDirectory()).delete("main.wsdl");
+		}
+		if (instance.getDirectory().getChild("main.properties") != null) {
+			((ManageableContainer<?>) instance.getDirectory()).delete("main.properties");
+		}
+		
+		boolean zipped = false;
+		try {
+			ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(content));
+			if (zipInputStream.getNextEntry() != null) {
+				zipped = true;
+			}
+		}
+		catch (Exception e) {
+			// it's not a zip file...
+		}
+		
+		if (zipped) {
+			String mainWsdl = null;
+			Resource privateDirectory = instance.getDirectory().getChild(EAIResourceRepository.PRIVATE);
+			if (privateDirectory == null) {
+				privateDirectory = ((ManageableContainer<?>) instance.getDirectory()).create(EAIResourceRepository.PRIVATE, Resource.CONTENT_TYPE_DIRECTORY);
+			}
+			ResourceUtils.unzip(new ZipInputStream(new ByteArrayInputStream(content)), (ResourceContainer<?>) privateDirectory);
+			// if you didn't enter a main wsdl, we assume there is only one wsdl, take that
+			if (mainWsdl == null) {
+				for (Resource resource : (ResourceContainer<?>) privateDirectory) {
+					if (resource.getName().endsWith(".wsdl")) {
+						mainWsdl = resource.getName();
+					}
+				}
+			}
+			if (mainWsdl == null) {
+				Set properties = new LinkedHashSet();
+				EnumeratedSimpleProperty<String> e = new EnumeratedSimpleProperty<String>("Main WSDL Name", String.class, false);
+				for (Resource resource : (ResourceContainer<?>) privateDirectory) {
+					if (resource.getName().endsWith(".wsdl")) {
+						e.addAll(resource.getName());
+					}
+				}
+				properties.add(e);
+				final SimplePropertyUpdater updater = new SimplePropertyUpdater(true, properties);
+				EAIDeveloperUtils.buildPopup(MainController.getInstance(), updater, "Pick main WSDL", new EventHandler<ActionEvent>() {
+					@Override
+					public void handle(ActionEvent arg0) {
+						String mainWsdl = updater.getValue("Main WSDL Name");
+						if (mainWsdl != null) {
+							try {
+								writeWsdl(instance, mainWsdl);
+							}
+							catch (Exception e) {
+								MainController.getInstance().notify(e);
+							}
+						}
+					}
+				});
+			}
+			else {
+				writeWsdl(instance, mainWsdl);
+			}
+		}
+		else {
+			Resource child = instance.getDirectory().getChild("main.wsdl");
+			if (child == null) {
+				child = ((ManageableContainer<?>) instance.getDirectory()).create("main.wsdl", "text/xml");
+			}
+			WritableContainer<ByteBuffer> writable = ((WritableResource) child).getWritable();
+			try {
+				if (content.length != writable.write(IOUtils.wrap(content, true))) {
+					throw new RuntimeException("Could not write the entire wsdl");
+				}
+			}
+			finally {
+				writable.close();
+			}
+		}
+	}
+
+	private void writeWsdl(WSDLClient instance, String mainWsdl) throws IOException {
+		Resource child = instance.getDirectory().getChild("main.properties");
+		if (child == null) {
+			child = ((ManageableContainer<?>) instance.getDirectory()).create("main.properties", "text/plain");
+		}
+		Properties properties = new Properties();
+		properties.put("wsdl", mainWsdl);
+		WritableContainer<ByteBuffer> writable = ((WritableResource) child).getWritable();
+		try {
+			properties.store(IOUtils.toOutputStream(writable), "");
+		}
+		finally {
+			writable.close();
+		}
+	}
 }
