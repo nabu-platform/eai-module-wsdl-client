@@ -9,12 +9,14 @@ import be.nabu.eai.developer.MainController;
 import be.nabu.eai.developer.api.CollectionAction;
 import be.nabu.eai.developer.api.CollectionManager;
 import be.nabu.eai.developer.api.CollectionManagerFactory;
+import be.nabu.eai.developer.api.EntryAcceptor;
 import be.nabu.eai.developer.collection.EAICollectionUtils;
 import be.nabu.eai.developer.util.EAIDeveloperUtils;
 import be.nabu.eai.module.wsdl.client.WSDLClient;
 import be.nabu.eai.module.wsdl.client.WSDLClientGUIManager;
 import be.nabu.eai.module.wsdl.client.WSDLClientManager;
 import be.nabu.eai.repository.CollectionImpl;
+import be.nabu.eai.repository.api.Collection;
 import be.nabu.eai.repository.api.Entry;
 import be.nabu.eai.repository.resources.RepositoryEntry;
 import javafx.event.ActionEvent;
@@ -64,6 +66,12 @@ public class WSDLClientCollectionFactory implements CollectionManagerFactory {
 						}
 					}, false).show();
 				}
+			}, new EntryAcceptor() {
+				@Override
+				public boolean accept(Entry entry) {
+					Collection collection = entry.getCollection();
+					return collection != null && "folder".equals(collection.getType()) && "connectors".equals(collection.getSubType());
+				}
 			}));
 		}
 		return actions;
@@ -75,6 +83,7 @@ public class WSDLClientCollectionFactory implements CollectionManagerFactory {
 			CollectionImpl collection = new CollectionImpl();
 			collection.setType("folder");
 			collection.setName("Connectors");
+			collection.setSubType("connectors");
 			collection.setSmallIcon("connector/connector-small.png");
 			collection.setMediumIcon("connector/connector-medium.png");
 			collection.setLargeIcon("connector/connector-large.png");
