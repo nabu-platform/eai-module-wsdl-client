@@ -51,9 +51,15 @@ public class WSDLClientCollection implements CollectionManager {
 				buttons.add(button);
 			}
 		}
+		List<Entry> services = new ArrayList<Entry>();
+		for (Entry child : entry) {
+			if (child.isNode() && WSDLClient.class.isAssignableFrom(child.getNode().getArtifactClass())) {
+				services.addAll(EAICollectionUtils.scanForServices(child));
+			}
+		}
 		// TODO: add a remove button for the entire connector
 		buttons.add(EAICollectionUtils.newDeleteButton(entry, null));
-		return EAICollectionUtils.newSummaryTile(entry, "wsdlclient-large.png", buttons.toArray(new Button[buttons.size()]));
+		return EAICollectionUtils.newSummaryTile(entry, "wsdlclient-large.png", services, buttons);
 	}
 
 	
