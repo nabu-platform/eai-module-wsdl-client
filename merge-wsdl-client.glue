@@ -1,0 +1,55 @@
+result = xml.objectify(file.read("wsdl-client.xml"))
+
+tag("REST Client Endpoint")
+
+result/endpoint = parameter(
+	name: "endpoint",
+	category: "Basic",
+	title: null,
+	description: "The endpoint to use",
+	type: null,
+	encrypted: false,
+	optional: true,
+	raw: result/endpoint)/current
+	
+result/charset = parameter(
+	name: "charset",
+	category: "Basic",
+	title: null,
+	description: "The charset that is used to communicate with the server",
+	type: null,
+	encrypted: false,
+	optional: true,
+	raw: result/charset)/current
+	
+result/httpClient = parameter(
+	name: "httpClient",
+	category: "Basic",
+	title: null,
+	description: "The http client that this rest client uses",
+	type: "artifact",
+	encrypted: false,
+	optional: true,
+	raw: result/httpClient)/current
+	
+result/username = parameter(
+	name: "username",
+	category: "Security",
+	title: null,
+	description: "The username for authentication",
+	type: null,
+	encrypted: false,
+	optional: true,
+	raw: result/username)/current
+	
+result/password = parameter(
+	name: "password",
+	category: "Security",
+	title: null,
+	description: "The password for authentication",
+	type: "password",
+	encrypted: false,
+	optional: true,
+	raw: result/password)/current
+	
+file.write("wsdl-client.xml", xml.stringify(result))
