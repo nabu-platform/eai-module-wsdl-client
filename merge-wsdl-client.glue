@@ -1,6 +1,6 @@
 result = xml.objectify(file.read("wsdl-client.xml"))
 
-tag("REST Client Endpoint")
+tag("WSDL Client")
 
 result/endpoint = parameter(
 	name: "endpoint",
