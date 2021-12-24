@@ -70,7 +70,7 @@ public class WSDLClientCollectionFactory implements CollectionManagerFactory {
 				@Override
 				public boolean accept(Entry entry) {
 					Collection collection = entry.getCollection();
-					return collection != null && "folder".equals(collection.getType()) && "connectors".equals(collection.getSubType());
+					return collection != null && "folder".equals(collection.getType()) && "integrations".equals(collection.getSubType());
 				}
 			}));
 		}
@@ -78,17 +78,18 @@ public class WSDLClientCollectionFactory implements CollectionManagerFactory {
 	}
 
 	public static Entry getConnectorsEntry(RepositoryEntry project) throws IOException {
-		Entry child = EAIDeveloperUtils.mkdir(project, "connectors");
+		Entry child = EAIDeveloperUtils.mkdir(project, "integrations");
 		if (!child.isCollection()) {
 			CollectionImpl collection = new CollectionImpl();
 			collection.setType("folder");
-			collection.setName("Connectors");
-			collection.setSubType("connectors");
-			collection.setSmallIcon("connector/connector-small.png");
-			collection.setMediumIcon("connector/connector-medium.png");
-			collection.setLargeIcon("connector/connector-large.png");
+			collection.setName("Integrations");
+			collection.setSubType("integrations");
+			collection.setSmallIcon("integration/integration-small.png");
+			collection.setMediumIcon("integration/integration-medium.png");
+			collection.setLargeIcon("integration/integration-large.png");
 			((RepositoryEntry) child).setCollection(collection);
 			((RepositoryEntry) child).saveCollection();
+			EAIDeveloperUtils.updated(child.getId());
 		}
 		return child;
 	}
@@ -98,13 +99,13 @@ public class WSDLClientCollectionFactory implements CollectionManagerFactory {
 		Entry child = EAIDeveloperUtils.mkdir((RepositoryEntry) getConnectorsEntry(project), normalize);
 		if (!child.isCollection()) {
 			CollectionImpl collection = new CollectionImpl();
-			collection.setType("connector");
-			collection.setSubType("swagger");
+			collection.setType("integration");
 			if (!normalize.equals(name)) {
 				collection.setName(name);
 			}
 			((RepositoryEntry) child).setCollection(collection);
 			((RepositoryEntry) child).saveCollection();
+			EAIDeveloperUtils.updated(child.getId());
 		}
 		return child;
 	}
