@@ -2,6 +2,7 @@ package be.nabu.eai.module.wsdl.client;
 
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.TimeZone;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -10,9 +11,12 @@ import be.nabu.eai.api.EnvironmentSpecific;
 import be.nabu.eai.module.http.client.HTTPClientArtifact;
 import be.nabu.eai.repository.jaxb.ArtifactXMLAdapter;
 import be.nabu.eai.repository.jaxb.CharsetAdapter;
+import be.nabu.eai.repository.jaxb.TimeZoneAdapter;
 import be.nabu.libs.http.api.WebAuthorizationType;
 import be.nabu.libs.services.wsdl.api.WSSecurityType;
 import be.nabu.libs.types.api.DefinedTypeRegistry;
+import be.nabu.libs.types.api.annotation.Field;
+import be.nabu.libs.types.base.Duration;
 
 @XmlRootElement(name = "wsdlClient")
 public class WSDLClientConfiguration {
@@ -26,6 +30,8 @@ public class WSDLClientConfiguration {
 	private String endpoint;
 	private WebAuthorizationType preemptiveAuthorizationType;
 	private WSSecurityType wsSecurity;
+	private Duration wsSecurityTimeout;
+	private TimeZone timezone;
 	// not yet implemented...
 //	private List<Class<WSExtension>> extensions;
 	
@@ -106,6 +112,22 @@ public class WSDLClientConfiguration {
 	}
 	public void setWsSecurity(WSSecurityType wsSecurity) {
 		this.wsSecurity = wsSecurity;
+	}
+	
+	@Field(show = "wsSecurity != null")
+	public Duration getWsSecurityTimeout() {
+		return wsSecurityTimeout;
+	}
+	public void setWsSecurityTimeout(Duration wsSecurityTimeout) {
+		this.wsSecurityTimeout = wsSecurityTimeout;
+	}
+	
+	@XmlJavaTypeAdapter(value = TimeZoneAdapter.class)
+	public TimeZone getTimezone() {
+		return timezone;
+	}
+	public void setTimezone(TimeZone timezone) {
+		this.timezone = timezone;
 	}
 
 }

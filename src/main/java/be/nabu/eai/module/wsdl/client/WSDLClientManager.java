@@ -77,6 +77,10 @@ public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfigurati
 					if (artifact.getConfig().getWsSecurity() != null) {
 						WSSecurity wsSecurity = new WSSecurity();
 						wsSecurity.setWsSecurityType(artifact.getConfig().getWsSecurity());
+						if (artifact.getConfig().getWsSecurityTimeout() != null) {
+							wsSecurity.setTimestampDuration(1000l * artifact.getConfig().getWsSecurityTimeout().toSeconds());
+						}
+						wsSecurity.setTimezone(artifact.getConfig().getTimezone());
 						service.setExtensions(Arrays.asList(wsSecurity));
 					}
 					node = new EAINode();
