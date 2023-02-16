@@ -74,6 +74,8 @@ public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfigurati
 					}, artifact.getConfiguration().getCharset());
 					service.setPreemptiveAuthorizationType(artifact.getConfig().getPreemptiveAuthorizationType());
 					service.setEndpoint(artifact.getConfig().getEndpoint());
+					service.setUsername(artifact.getConfig().getUsername());
+					service.setPassword(artifact.getConfig().getPassword());
 					if (artifact.getConfig().getWsSecurity() != null) {
 						WSSecurity wsSecurity = new WSSecurity();
 						wsSecurity.setWsSecurityType(artifact.getConfig().getWsSecurity());
