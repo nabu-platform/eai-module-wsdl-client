@@ -155,16 +155,6 @@ public class WSDLClientManager extends JAXBArtifactManager<WSDLClientConfigurati
 	}
 
 	@Override
-	public List<String> getReferences(WSDLClient artifact) throws IOException {
-		return null;
-	}
-
-	@Override
-	public List<Validation<?>> updateReference(WSDLClient artifact, String from, String to) throws IOException {
-		return null;
-	}
-
-	@Override
 	protected WSDLClient newInstance(String id, ResourceContainer<?> container, Repository repository) {
 		return new WSDLClient(id, container, repository);
 	}
