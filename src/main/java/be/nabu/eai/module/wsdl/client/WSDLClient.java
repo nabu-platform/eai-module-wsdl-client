@@ -104,7 +104,8 @@ public class WSDLClient extends JAXBArtifact<WSDLClientConfiguration> {
 							@Override
 							public InputStream resolve(URI uri) throws IOException {
 								// path always starts with a "/", we don't want to go back to the root, but start in the private directory
-								Resource resolved = ResourceUtils.resolve(privateDirectory, uri.getPath());
+//								Resource resolved = ResourceUtils.resolve(privateDirectory, uri.getPath());
+								Resource resolved = ResourceUtils.resolve(privateDirectory, uri.getPath().replaceFirst("^/", ""));
 								return resolved == null ? null : IOUtils.toInputStream(new ResourceReadableContainer((ReadableResource) resolved));
 							}
 							@Override

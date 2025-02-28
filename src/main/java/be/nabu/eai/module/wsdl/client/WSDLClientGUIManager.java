@@ -199,10 +199,15 @@ public class WSDLClientGUIManager extends BaseJAXBGUIManager<WSDLClientConfigura
 			ResourceUtils.unzip(new ZipInputStream(new ByteArrayInputStream(content)), (ResourceContainer<?>) privateDirectory);
 			// if you didn't enter a main wsdl, we assume there is only one wsdl, take that
 			if (mainWsdl == null) {
+				int count = 0;
 				for (Resource resource : (ResourceContainer<?>) privateDirectory) {
 					if (resource.getName().endsWith(".wsdl")) {
 						mainWsdl = resource.getName();
+						count++;
 					}
+				}
+				if (count != 1) {
+					mainWsdl = null;
 				}
 			}
 			if (mainWsdl == null) {
